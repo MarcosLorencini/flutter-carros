@@ -1,22 +1,37 @@
 
 import 'package:carros/pages/login/login_page.dart';
+import 'package:carros/pages/login/usuario.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:flutter/material.dart';
 
 class DrawerList extends StatelessWidget {
+
+
+  //mostra o usuario recuperado no prefs
+  UserAccountsDrawerHeader _header(Usuario user) {
+    return UserAccountsDrawerHeader(
+      accountName: Text(user.nome),
+      accountEmail: Text(user.email),
+      currentAccountPicture: CircleAvatar(
+        backgroundImage: NetworkImage(user.urlFoto),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
+
+    Future<Usuario> usuarioGet = Usuario.get(); //le o usuario que foi salvo no prefs
+
     return SafeArea(// tira o espaço no top do menu lateral
       child: Drawer(// menu lateral
         child: ListView(
           children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text("Marcos Ferreira"),
-              accountEmail: Text("mlorencinif@gmail.com"),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqP85ZnOcRSCX3nlYdkCvSxhSuZs0bLt1He8EvGr5ne8c7mTqW"),
-              ),
-            ),
+           FutureBuilder<Usuario>(
+               future: usuarioGet, builder: (context, snapshot) {
+                 Usuario user = snapshot.data;// dados retorno do Future
+                 return user != null ? _header(user) : Container();//na 1x o usuario vai estar nullo
+               },
+           ),
             ListTile(
               leading: Icon(Icons.star),
               title: Text("Favoritos"),
@@ -50,7 +65,10 @@ class DrawerList extends StatelessWidget {
 
   }
 
+
+
   _onClickLogout(BuildContext context) {
+    Usuario.clear();//limpa a prefs
     Navigator.pop(context); //fecha o menu lateral
     push(context, LoginPage(), replace: true);//vai destruir a widget home e vai para a tela de login
   }

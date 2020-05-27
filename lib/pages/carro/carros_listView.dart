@@ -1,9 +1,14 @@
 
 
+import 'dart:async';
+
+import 'package:carros/pages/carro/carro_page.dart';
+import 'package:carros/pages/carro/carros_bloc.dart';
+import 'package:carros/utils/nav.dart';
+import 'package:carros/widgets/text_error.dart';
 import 'package:flutter/material.dart';
 
 import 'carro.dart';
-import 'carros_api.dart';
 
 class CarrosListView extends StatefulWidget { //converteu para Statetul  para salvar o status das abas só realiza a requisicao 1x
   String tipo;
@@ -14,38 +19,37 @@ class CarrosListView extends StatefulWidget { //converteu para Statetul  para sa
 }
 
 class _CarrosListViewState extends State<CarrosListView> with AutomaticKeepAliveClientMixin<CarrosListView> { //para salvar o status das abas só realiza a requisicao 1x
+
+  final _bloc  = CarrosBloc();
+
   @override
   bool get wantKeepAlive => true; //para salvar o status das abas só realiza a requisicao 1x
 
   @override
-  Widget build(BuildContext context) {
-    super.build(context); //para salvar o status das abas só realiza a requisicao 1x
-    return _body();
+  void initState() {//é chamado uma unica vez na inicialização do StatefulWidget, pois a busca do getCarros ficar dentro dele
+    super.initState();
+
+    _bloc.loadCarros(widget.tipo);
   }
 
-  _body() {
-    Future<List<Carro>> carros = CarrosApi.getCarros(widget.tipo);
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); //para salvar o status das abas só realiza a requisicao 1x
 
-    return FutureBuilder( //é um widget que fica aguardando o Future retornar(ele converte um Future em um Widget), pois o Future não é um widget
-      future: carros, //carros é o Future que o FutureBuilder tem que agurdar
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if(snapshot.hasError) {// caso gere um erro no retorno da api
-          return Center(
-            child: Text(
-              "Não foi possível buscar os carros",
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 22,
-              ),
-            ),
-          );
-        }
-        if(! snapshot.hasData) {// na 1x vai estar vazio ai mostra o icone circular
-          return Center(child: CircularProgressIndicator(),);
-        }
-        List<Carro> carros = snapshot.data;// data dados do retorno do Future
-        return _listView(carros);
 
+    //programacao reativa usando streams observaveis, fica escutando as mudanças na stream:
+    //na 1x vai ficar girando o CircularProgressIndicator
+   return StreamBuilder(
+        stream: _bloc.stream,//está na classe mae. Ouvi quando uma lista de carros é enviado para k  final _streamController = StreamController<List<Carro>>() na classe carros_bloc ; e renderiza somente o StreamBuilder
+        builder: (context, snapshot) {
+          if(snapshot.hasError) {
+            return TextError("Não foi possível buscar os carros");
+          }
+          if(!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator(),);
+          }
+          List<Carro> carros = snapshot.data;// data dados do retorno do Future
+          return _listView(carros);
       },
     );
   }
@@ -91,9 +95,7 @@ class _CarrosListViewState extends State<CarrosListView> with AutomaticKeepAlive
                       children: <Widget>[
                         FlatButton(
                           child: const Text('DETALHES'),
-                          onPressed: () {
-                            /* ... */
-                          },
+                          onPressed: () => _onClickCarro(c),
                         ),
                         FlatButton(
                           child: const Text('SHARE'),
@@ -110,4 +112,15 @@ class _CarrosListViewState extends State<CarrosListView> with AutomaticKeepAlive
           }),
     );
   }
+
+  _onClickCarro(Carro c) {
+    push(context, CarroPage(c));
+  }
+
+  void dispose() {
+    super.dispose();
+    _bloc.dispose();
+  }
+
+
 }

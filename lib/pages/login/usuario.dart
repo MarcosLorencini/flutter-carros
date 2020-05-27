@@ -37,6 +37,10 @@ class Usuario {
     data['roles'] = this.roles;
     return data;
   }
+  //limpa as prefs quando dlogout
+  static void clear() {
+    Prefs.setString("user.prefs", "");
+  }
 
   //salva o usuario no Pefs
   void save() {
@@ -48,5 +52,19 @@ class Usuario {
 
     Prefs.setString("user.prefs", json);
   }
+
+  //le o usuario que foi salvo no prefs
+  static Future<Usuario> get() async {
+    String json = await Prefs.getString("user.prefs");//recupera o use no prefs
+    if(json.isEmpty) {
+      return null;
+    }
+    Map map  = convert.json.decode(json); //convert para Map
+    Usuario user = Usuario.fromJson(map); //e convert map para objeto
+    return user;
+
+  }
+
+
 
 }

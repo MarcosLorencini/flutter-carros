@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:carros/pages/api_response.dart';
 import 'package:carros/pages/carro/home_page.dart';
 import 'package:carros/pages/login/login_api.dart';
+import 'package:carros/pages/login/login_bloc.dart';
 import 'package:carros/pages/login/usuario.dart';
 import 'package:carros/utils/alert.dart';
 import 'package:carros/utils/nav.dart';
@@ -19,12 +22,22 @@ class _LoginPageState extends State<LoginPage> {
   final _tLogin = TextEditingController();
   final _tSenha = TextEditingController();
   final _focusSenha = FocusNode();
-  bool _showProgress = false;
+  final _bloc = LoginBloc();
+
 
   @override
-  void initState() {
+  void initState() {//inicia a tela
     //para recuperar o contexto
     super.initState();
+    //não pode usar o asunc e o await dentro do initState
+    Future<Usuario> future = Usuario.get();//recupera o usuario do prefs
+    future.then((Usuario user) {//quado o usuario retornar
+      if(user != null) {
+        setState(() {//redezema tela pode chamar pois está dentro do StatefulWidget
+          _tLogin.text = user.login;
+        });
+      }
+    });
   }
 
   @override
@@ -68,10 +81,15 @@ class _LoginPageState extends State<LoginPage> {
 
             SizedBox(height: 20,), //espacamento
 
-            AppButton(
-              "Login",
-              onPressed: _onClickLogin,
-              showProgress: _showProgress,
+            StreamBuilder<bool>( //está monitorando uma stream que é do tipo boleana
+              stream: _bloc.stream, //recebe um boolean para girar ou não o login e renderiza somente a parte da tela do StreamBuilder
+              builder: (context, snapshot) {
+                return AppButton(
+                  "Login",
+                  onPressed: _onClickLogin,
+                  showProgress: snapshot.data ?? false, //gira o login ou não é boolean
+                );
+              }
             )
           ],
         ),
@@ -87,11 +105,9 @@ class _LoginPageState extends State<LoginPage> {
     String senha = _tSenha.text;
     print("Login: $login, Senha: $senha");
 
-    setState(() { //so pode ser chamado dentro de um StatefulWidget. Ele chama novamente o Widget build(BuildContext context)  e todos os widgtes são redesenhados
-      _showProgress = true;
-    });
 
-    ApiResponse response = await LoginApi.login(login, senha); // o await converte o Future para boolean
+
+    ApiResponse response = await _bloc.login(login, senha); // o await converte o Future para boolean
 
     if(response.ok) {
 
@@ -99,12 +115,10 @@ class _LoginPageState extends State<LoginPage> {
       print(">>> $user");
       push(context, HomePage(), replace: true);//o push impilha as widgets, por baixo vai ficar a login page e por cima a homepage. por padrão é false, fica o botão de retorno na prox, tela
     } else {
-      alert(context, response.msg); //msg de erro da api
+      alert(context, response.msg); //manda um booelan para parar de girar o login
     }
 
-    setState(() { //so pode ser chamado dentro de um StatefulWidget. Ele chama novamente o Widget build(BuildContext context)  e todos os widgtes são redesenhados
-      _showProgress = false; // quando volta o botão para de girar, mostra o texto
-    });
+
 
 
   }
@@ -124,5 +138,10 @@ class _LoginPageState extends State<LoginPage> {
       return "A senha precisa ter pelo menos 3 números";
     }
     return null;
+  }
+
+  void dispose() {//libera o widget da memoria
+    super.dispose();
+    _bloc.dispose();//fecha a stream que é o fluxo de dados
   }
 }
