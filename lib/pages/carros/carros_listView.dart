@@ -4,6 +4,7 @@ import 'package:carros/pages/carros/carro.dart';
 import 'package:carros/pages/carros/carro_page.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 
 
@@ -34,10 +35,9 @@ class CarrosListView extends StatelessWidget { //converteu para Statetul  para s
                   crossAxisAlignment: CrossAxisAlignment.start,
                   //joga tudo para esquerda
                   children: <Widget>[
-                    Center(
-                      child: Image.network(
-                        // centraliza a imagem dos carros
-                        c.urlFoto != null ? c.urlFoto : "http://www.livroandroid.com.br/livro/carros/luxo/Mercedes_McLaren.png",
+                    Center(  // centraliza a imagem dos carros
+                      child: CachedNetworkImage( //ele cria um aquivo de cache na mesma pasta do bd carros de cache das imagens na prox vez é mais rápido
+                        imageUrl: c.urlFoto != null ? c.urlFoto : "http://www.livroandroid.com.br/livro/carros/luxo/Mercedes_McLaren.png",
                         width: 250,
                       ),
                     ),

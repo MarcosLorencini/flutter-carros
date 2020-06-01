@@ -1,6 +1,6 @@
 
 import 'package:carros/pages/carros/carro.dart';
-import 'package:carros/pages/favoritos/carro_dao.dart';
+import 'package:carros/pages/carros/carro_dao.dart';
 import 'package:carros/pages/login/usuario.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
@@ -40,11 +40,7 @@ class CarrosApi {
       //e vai converter para carro
       // (map) => Carro.fromJson(map) funcao de mapeamento
       //percorre a lista [] que dentro da mesma tem vários maps(json de carros) e converte em objeto Carro
-      List<Carro> carros = list.map<Carro>((map) => Carro.fromJson(map)).toList();
-
-      final dao = CarroDAO();
-
-      carros.forEach(dao.save); //pega os carros da API e salva no sqlfite
+      List<Carro> carros = list.map<Carro>((map) => Carro.fromMap(map)).toList();
 
       return carros;
 

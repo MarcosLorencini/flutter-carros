@@ -29,14 +29,14 @@ class _LoginPageState extends State<LoginPage> {
     //para recuperar o contexto
     super.initState();
     //não pode usar o asunc e o await dentro do initState
-    Future<Usuario> future = Usuario.get();//recupera o usuario do prefs
+    /*Future<Usuario> future = Usuario.get();//recupera o usuario do prefs
     future.then((Usuario user) {//quado o usuario retornar
       if(user != null) {
         setState(() {//redezema tela pode chamar pois está dentro do StatefulWidget
           _tLogin.text = user.login;
         });
       }
-    });
+    });*/
   }
 
   @override
