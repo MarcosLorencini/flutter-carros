@@ -1,6 +1,9 @@
 import 'package:carros/drawer_list.dart';
+import 'package:carros/pages/carros/carro_form_page.dart';
 import 'package:carros/pages/carros/carros_api.dart';
 import 'package:carros/pages/carros/carros_page.dart';
+import 'package:carros/pages/favoritos/favoritos_page.dart';
+import 'package:carros/utils/nav.dart';
 import 'package:carros/utils/prefs.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +31,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     // Depois cria o TabController
     // No método build na primeira vez ele poderá estar nulo
-    _tabController = TabController(length: 3, vsync: this); // length: 3 quantidade da aba é o proprio SingleTickerProviderStateMixin mante o estado da aba escolhida
+    _tabController = TabController(length: 4, vsync: this); // length: 4 quantidade da aba é o proprio SingleTickerProviderStateMixin mante o estado da aba escolhida
 
     // Agora que temos o TabController e o índice da tab,
     // chama o setState para redesenhar a tela
@@ -58,13 +61,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           tabs: [
             Tab(
               text: "Clássicos",
+              icon: Icon(Icons.directions_car),
             ),
             Tab(
               text: "Esportivos",
+              icon: Icon(Icons.directions_car),
             ),
             Tab(
               text: "Luxo",
+              icon: Icon(Icons.directions_car),
             ),
+            Tab(
+              text: "Favoritos",
+              icon: Icon(Icons.favorite),
+            )
           ],
         ),
       ),
@@ -77,10 +87,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         children: [
           CarrosPage(TipoCarro.classicos),
           CarrosPage(TipoCarro.esportivos),
-          CarrosPage(TipoCarro.luxo)
+          CarrosPage(TipoCarro.luxo),
+          FavoritosPage(),
         ],
       ),
       drawer: DrawerList(), //menu lateral
+      floatingActionButton: FloatingActionButton(//botão de add
+        child: Icon(Icons.add),
+        onPressed: _onClickAdicionarCarro,
+      ),
     );
+  }
+
+  void _onClickAdicionarCarro() {
+    push(context, CarroFormPage());//vai para tela de form para criar um carro
   }
 }

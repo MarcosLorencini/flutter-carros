@@ -1,9 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carros/pages/api_response.dart';
 import 'package:carros/pages/carros/carro.dart';
+import 'package:carros/pages/carros/carro_form_page.dart';
 import 'package:carros/pages/carros/loripsum_api.dart';
 import 'package:carros/pages/favoritos/favorito_service.dart';
+import 'package:carros/utils/alert.dart';
+import 'package:carros/utils/nav.dart';
 import 'package:carros/widgets/text.dart';
 import 'package:flutter/material.dart';
+
+import 'carros_api.dart';
 
 class CarroPage extends StatefulWidget {
 
@@ -18,11 +24,18 @@ class CarroPage extends StatefulWidget {
 class _CarroPageState extends State<CarroPage> {
   final _loripsumApiBloc = LoripsumBloc();
 
+  Color color = Colors.grey;
+
   Carro get carro => widget.carro;
 
   @override
-  void initState() {
+  void initState() {//carrega os dados da tela
     super.initState();
+    FavoritoService.isFavorito(carro).then((bool favorito) {//retorna se esta favoritado
+      setState(() {//redezenha a tela e pinta o coração de vermelho ou não
+        color = favorito ? Colors.red : Colors.grey;
+      });
+    });
     _loripsumApiBloc.fetch();
   }
 
@@ -71,7 +84,7 @@ class _CarroPageState extends State<CarroPage> {
         child: ListView(
           children: <Widget>[
             CachedNetworkImage(//ele cria um aquivo de cache na mesma pasta do bd carros de cache das imagens na prox vez é mais rápido
-                imageUrl:widget.carro.urlFoto),
+                imageUrl:widget.carro.urlFoto ?? "http://www.livroandroid.com.br/livro/carros/luxo/Mercedes_McLaren.png"),
             _bloco1(),
             Divider(),//cria a linha horizontal
             _bloco2(),
@@ -94,11 +107,17 @@ class _CarroPageState extends State<CarroPage> {
               Row(//2 linha(icones) o favorito e o shared (para o o favorito e o shared  ficaem um ao lado do outro )
                 children: <Widget>[
                   IconButton(
-                    icon: Icon(Icons.favorite, color: Colors.red, size: 40,),
+                    icon: Icon(
+                      Icons.favorite,
+                      color: color,
+                      size: 40,
+                    ),
                     onPressed: _onClickFavorito,
                   ),
                   IconButton(
-                    icon: Icon(Icons.share, size: 40,),
+                    icon: Icon(
+                      Icons.share,
+                      size: 40,),
                     onPressed: _onClickShare,
                   ),
 
@@ -136,10 +155,10 @@ class _CarroPageState extends State<CarroPage> {
   _onClickPopupMenu(String value) {
     switch (value) {
       case "Editar":
-        print("Editar !!!");
+        push(context, CarroFormPage(carro: carro));//form que edita o carro
         break;
       case "Deletar":
-        print("Deletar !!!");
+       deletar();
         break;
       case "Share":
         print("Share !!!");
@@ -147,16 +166,33 @@ class _CarroPageState extends State<CarroPage> {
     }
   }
 
-  void _onClickFavorito() {
-    FavoritoService.favoritar(carro);
-
+  void _onClickFavorito() async {
+    bool favorito = await FavoritoService.favoritar(carro);
+    setState(() {//redezenha a tela
+      color = favorito ? Colors.red : Colors.grey;//se o carro for favoritado deixa o coração vermelho quando for desfavoritado deixa o coração cinza
+    });
   }
 
   void _onClickShare() {
+  }
+
+  Future<void> deletar() async {
+    ApiResponse<bool> response = await CarrosApi.delete(carro);
+
+    if(response.ok) {
+      alert(context, "Carro deletado com sucesso", callback: (){// callback: () chama a funcao de callback
+        pop(context);//retona para a tela anterior após deletar o carro
+      });
+    } else {
+      alert(context, response.msg);
+    }
+
   }
 
   void dispose() {
     super.dispose();
     _loripsumApiBloc.dispose();
   }
+
+
 }
