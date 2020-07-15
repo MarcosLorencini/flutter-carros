@@ -5,6 +5,7 @@ import 'package:carros/pages/api_response.dart';
 import 'package:carros/pages/carros/carro.dart';
 import 'package:carros/pages/carros/carros_api.dart';
 import 'package:carros/utils/alert.dart';
+import 'package:carros/utils/event_bus.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:carros/widgets/app_button.dart';
 import 'package:carros/widgets/app_text.dart';
@@ -238,6 +239,7 @@ class _CarroFormPageState extends State<CarroFormPage> {
     ApiResponse<bool> response = await CarrosApi.save(c, _file);  //so quem for adm pode salvar um carro e envia a foto tirada para ser salva pela api
     if (response.ok) {
       alert(context, "Carro salvo com sucesso", callback: () { // callback: () chama a funcao de callback
+        EventBus.get(context).sendEvent(CarroEvent("carro_salvo",c.tipo));//salvou o carro enviou o evento para atualizar a lista de carros
         pop(context); //retona para a tela anterior após salvar o carro
       });
     } else {

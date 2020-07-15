@@ -5,7 +5,7 @@ import 'dart:async';
 class SimpleBloc<T> {
 
 
-  final _controller = StreamController<T>();// recebe uma lista de carros
+  final _controller = StreamController<T>.broadcast();//por padrão esta stream só pode ser escutada uma x por isso o .broadcast();// recebe uma lista de carros
 
   Stream<T> get stream => _controller.stream;//o bloc está expondo a stream que o widget pode ficar ouvindo
 

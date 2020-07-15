@@ -5,8 +5,10 @@ import 'dart:async';
 import 'package:carros/pages/carros/carro.dart';
 import 'package:carros/pages/carros/carros_bloc.dart';
 import 'package:carros/pages/carros/carros_listView.dart';
+import 'package:carros/utils/event_bus.dart';
 import 'package:carros/widgets/text_error.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 
 
@@ -23,6 +25,8 @@ class _CarrosPageState extends State<CarrosPage> with AutomaticKeepAliveClientMi
 
   final _bloc  = CarrosBloc();
 
+  StreamSubscription<Event> subscription;
+
   @override
   bool get wantKeepAlive => true; //para salvar o status das abas só realiza a requisicao 1x
 
@@ -31,6 +35,20 @@ class _CarrosPageState extends State<CarrosPage> with AutomaticKeepAliveClientMi
     super.initState();
 
     _bloc.loadCarros(widget.tipo);
+
+    //fica escutando uma Stream global(para ouvi lo em varios lugares do código), quando salvar o carro esta stream recebera um evento e atualiza a lista de carros novamente
+    //pegar o bus de eventos
+    final bus = EventBus.get(context);
+    subscription = bus.stream.listen((Event e){//fica escutando o evento e o recebe aqui
+      //qualquer envento pode ser o carro salvo ou excluido vai atualizar a lista de carros
+      print("Event $e");//vai continuar recebendo os 3 eventos das 3 abas, porém vai atualizar a aba correpondente
+      CarroEvent carroEvent = e;
+      //verfica a aba correta(esportivo, classicos, luxo) e realiza a atuazação na aba correspondente
+      if(carroEvent.tipo == widget.tipo) {
+        _bloc.loadCarros(widget.tipo);
+      }
+
+    });
   }
 
   @override
@@ -67,6 +85,7 @@ class _CarrosPageState extends State<CarrosPage> with AutomaticKeepAliveClientMi
   void dispose() {
     super.dispose();
     _bloc.dispose();
+    subscription.cancel();//quando não ouvir mais a stream que cancelar para não ouvir mais a memoria
   }
 
 
