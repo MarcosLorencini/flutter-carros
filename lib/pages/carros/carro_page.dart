@@ -4,12 +4,15 @@ import 'package:carros/pages/carros/carro.dart';
 import 'package:carros/pages/carros/carro_form_page.dart';
 import 'package:carros/pages/carros/loripsum_api.dart';
 import 'package:carros/pages/favoritos/favorito_service.dart';
+import 'package:carros/pages/video_page.dart';
 import 'package:carros/utils/alert.dart';
 import 'package:carros/utils/event_bus.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:carros/widgets/text.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../mapa_page.dart';
 import 'carros_api.dart';
 
 class CarroPage extends StatefulWidget {
@@ -48,11 +51,15 @@ class _CarroPageState extends State<CarroPage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.place),
-            onPressed: _onClickMapa,
+              onPressed: () {
+                _onClickMapa(context);
+              }
           ),
           IconButton(
             icon: Icon(Icons.videocam),
-            onPressed: _onClickVideo,
+            onPressed: () {
+              _onClickVideo(context);
+            }
           ),
           PopupMenuButton<String>(
             onSelected: (String value) => _onClickPopupMenu(value), //passa o value dos PopupMenuItem
@@ -149,9 +156,23 @@ class _CarroPageState extends State<CarroPage> {
     );
   }
 
-  void _onClickMapa() {}
 
-  void _onClickVideo() {}
+  void _onClickMapa(context) {
+    if (carro.latitude != null && carro.longitude != null) {
+      push(context, MapaPage(carro));//abre o mapa
+    } else {
+      alert(context, "Este carro não possui lat/lng.");
+    }
+  }
+
+  void _onClickVideo(context) {
+    if (carro.urlVideo != null && carro.urlVideo.isNotEmpty) {
+      //launch(carro.urlVideo);//abre o video do carro no navegador
+      push(context, VideoPage(carro));//abre o video no Video Player plugin do flutter
+    } else {
+      alert(context, "Este carro não possui nenhum vídeo");
+    }
+  }
 
   _onClickPopupMenu(String value) {
     switch (value) {
